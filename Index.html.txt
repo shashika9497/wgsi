@@ -1,0 +1,613 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>WGSI SL | Luxury Sri Lankan Tourism</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+    <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700&family=Inter:wght@300;400;600&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Inter', sans-serif; }
+        h1, h2, h3, h4 { font-family: 'Playfair Display', serif; }
+        .glass {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+        .glass-dark {
+            background: rgba(0, 0, 0, 0.6);
+            backdrop-filter: blur(10px);
+        }
+        .hide-scrollbar::-webkit-scrollbar { display: none; }
+        .hide-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+        .animate-fade-in { animation: fadeIn 0.8s ease-out forwards; }
+        .hero-bg {
+            background-image: linear-gradient(rgba(0,0,0,0.3), rgba(0,0,0,0.5)), url('https://images.unsplash.com/photo-1588258525938-30324f9134bd?q=80&w=2000&auto=format&fit=crop');
+            background-size: cover;
+            background-position: center;
+            background-attachment: fixed;
+        }
+    </style>
+</head>
+<body class="bg-gray-50 text-gray-800 overflow-x-hidden">
+    <div id="root"></div>
+
+    <script type="text/babel">
+        const { useState, useEffect, useRef } = React;
+        const { 
+            MapPin, Phone, Mail, Calendar, Star, Menu, X, ChevronRight, 
+            Shield, Lock, Users, Image, MessageSquare, AlertTriangle, 
+            Instagram, Facebook, Twitter, Send, CheckCircle, LogIn, LogOut
+        } = lucide;
+
+        // --- MOCK DATA & INITIAL STATE ---
+        const INITIAL_TOURS = [
+            { id: 1, title: "Ella Adventure Tour", price: 120, duration: "2 Days", image: "https://images.unsplash.com/photo-1622304979686-4f625254a4bd?auto=format&fit=crop&w=800&q=80", desc: "Hike through tea plantations and visit the iconic Nine Arch Bridge." },
+            { id: 2, title: "Sigiriya Heritage Tour", price: 150, duration: "1 Day", image: "https://images.unsplash.com/photo-1586617629608-2b189420f6f7?auto=format&fit=crop&w=800&q=80", desc: "Climb the Lion Rock fortress and explore ancient frescoes." },
+            { id: 3, title: "South Coast Beach Tour", price: 200, duration: "3 Days", image: "https://images.unsplash.com/photo-1590523277543-a94d2e4eb00b?auto=format&fit=crop&w=800&q=80", desc: "Relax on the golden sands of Mirissa and Unawatuna." },
+            { id: 4, title: "Kandy Cultural Tour", price: 90, duration: "1 Day", image: "https://images.unsplash.com/photo-1569668723429-9fb421b0900a?auto=format&fit=crop&w=800&q=80", desc: "Visit the Temple of the Tooth and enjoy a cultural dance show." },
+            { id: 5, title: "Yala Safari Experience", price: 250, duration: "2 Days", image: "https://images.unsplash.com/photo-1590418606746-02e6274964c7?auto=format&fit=crop&w=800&q=80", desc: "Spot leopards, elephants, and exotic birds in Yala National Park." },
+            { id: 6, title: "Nuwara Eliya Tea Country", price: 180, duration: "2 Days", image: "https://images.unsplash.com/photo-1566297460182-30b11b991ab7?auto=format&fit=crop&w=800&q=80", desc: "Tour the lush green tea estates and enjoy a fresh cup of Ceylon tea." }
+        ];
+
+        const INITIAL_BOOKINGS = [
+            { id: 101, name: "John Doe", tour: "Yala Safari Experience", date: "2026-06-15", status: "Confirmed" },
+            { id: 102, name: "Sarah Smith", tour: "Ella Adventure Tour", date: "2026-07-01", status: "Pending" }
+        ];
+
+        const EMERGENCY_CONTACTS = [
+            { name: "Tourist Police", number: "011-2421052" },
+            { name: "Ambulance", number: "1990" },
+            { name: "Fire & Rescue", number: "110" },
+            { name: "Police Emergency", number: "118 / 119" }
+        ];
+
+        // --- COMPONENTS ---
+
+        // 1. HERO SECTION
+        const Hero = ({ onExplore, onBook }) => (
+            <div className="relative h-screen flex items-center justify-center hero-bg text-white">
+                <div className="absolute inset-0 bg-gradient-to-b from-black/40 via-transparent to-black/60"></div>
+                <div className="relative z-10 text-center px-4 max-w-4xl mx-auto animate-fade-in">
+                    <span className="text-orange-400 tracking-[0.2em] uppercase text-sm font-semibold mb-4 block">Discover the Pearl of the Indian Ocean</span>
+                    <h1 className="text-5xl md:text-7xl font-bold mb-6 leading-tight">Explore Sri Lanka with WGSI SL</h1>
+                    <p className="text-xl md:text-2xl text-gray-200 mb-10 font-light">Discover beaches, mountains, wildlife, culture, and unforgettable adventures.</p>
+                    <div className="flex flex-col md:flex-row gap-4 justify-center">
+                        <button onClick={onBook} className="px-8 py-4 bg-orange-500 hover:bg-orange-600 text-white rounded-full font-semibold transition transform hover:scale-105 shadow-lg">Book Now</button>
+                        <button onClick={onExplore} className="px-8 py-4 glass text-white rounded-full font-semibold transition transform hover:scale-105 hover:bg-white/20">Explore Tours</button>
+                    </div>
+                </div>
+            </div>
+        );
+
+        // 2. NAVIGATION
+        const Navbar = ({ activeTab, setActiveTab, isAdmin, setIsAdmin }) => {
+            const [isOpen, setIsOpen] = useState(false);
+            const [scrolled, setScrolled] = useState(false);
+
+            useEffect(() => {
+                const handleScroll = () => setScrolled(window.scrollY > 50);
+                window.addEventListener('scroll', handleScroll);
+                return () => window.removeEventListener('scroll', handleScroll);
+            }, []);
+
+            const navLinks = [
+                { id: 'home', label: 'Home' },
+                { id: 'tours', label: 'Tours' },
+                { id: 'gallery', label: 'Gallery' },
+                { id: 'about', label: 'About' },
+                { id: 'contact', label: 'Contact' },
+            ];
+
+            return (
+                <nav className={`fixed w-full z-50 transition-all duration-300 ${scrolled ? 'bg-white/90 backdrop-blur-md shadow-md py-3 text-gray-800' : 'bg-transparent py-6 text-white'}`}>
+                    <div className="container mx-auto px-6 flex justify-between items-center">
+                        <div className="flex items-center gap-2 cursor-pointer" onClick={() => setActiveTab('home')}>
+                            <div className="w-10 h-10 bg-orange-500 rounded-full flex items-center justify-center text-white font-bold text-xl">W</div>
+                            <span className="text-2xl font-bold tracking-wide">WGSI SL</span>
+                        </div>
+                        
+                        <div className="hidden md:flex items-center gap-8">
+                            {navLinks.map(link => (
+                                <button 
+                                    key={link.id} 
+                                    onClick={() => setActiveTab(link.id)}
+                                    className={`font-medium hover:text-orange-500 transition ${activeTab === link.id ? 'text-orange-500' : ''}`}
+                                >
+                                    {link.label}
+                                </button>
+                            ))}
+                            <button 
+                                onClick={() => setIsAdmin(!isAdmin)}
+                                className={`flex items-center gap-2 px-4 py-2 rounded-full border transition ${scrolled ? 'border-gray-300 hover:bg-gray-100' : 'border-white/30 hover:bg-white/10'}`}
+                            >
+                                {isAdmin ? <><LogOut size={16}/> Exit Admin</> : <><Lock size={16}/> Admin</>}
+                            </button>
+                        </div>
+
+                        <button className="md:hidden" onClick={() => setIsOpen(!isOpen)}>
+                            {isOpen ? <X /> : <Menu />}
+                        </button>
+                    </div>
+
+                    {/* Mobile Menu */}
+                    {isOpen && (
+                        <div className="absolute top-full left-0 w-full bg-white text-gray-800 shadow-xl p-6 flex flex-col gap-4 md:hidden">
+                            {navLinks.map(link => (
+                                <button key={link.id} onClick={() => { setActiveTab(link.id); setIsOpen(false); }} className="text-left font-medium py-2 border-b border-gray-100">{link.label}</button>
+                            ))}
+                            <button onClick={() => { setIsAdmin(!isAdmin); setIsOpen(false); }} className="flex items-center gap-2 text-orange-600 font-semibold">
+                                {isAdmin ? 'Exit Admin Panel' : 'Admin Login'}
+                            </button>
+                        </div>
+                    )}
+                </nav>
+            );
+        };
+
+        // 3. TOUR CARDS
+        const TourCard = ({ tour, onSelect }) => (
+            <div className="group bg-white rounded-2xl overflow-hidden shadow-lg hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-2 border border-gray-100">
+                <div className="relative h-64 overflow-hidden">
+                    <img src={tour.image} alt={tour.title} className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110" />
+                    <div className="absolute top-4 right-4 bg-white/90 backdrop-blur px-3 py-1 rounded-full text-xs font-bold text-gray-800 flex items-center gap-1">
+                        <Calendar size={12} /> {tour.duration}
+                    </div>
+                </div>
+                <div className="p-6">
+                    <div className="flex justify-between items-start mb-2">
+                        <h3 className="text-xl font-bold text-gray-900">{tour.title}</h3>
+                        <span className="text-orange-600 font-bold text-lg">${tour.price}</span>
+                    </div>
+                    <p className="text-gray-600 text-sm mb-4 line-clamp-2">{tour.desc}</p>
+                    <button onClick={() => onSelect(tour)} className="w-full py-3 rounded-xl bg-gray-900 text-white font-medium hover:bg-orange-500 transition-colors flex items-center justify-center gap-2">
+                        Book Now <ChevronRight size={16} />
+                    </button>
+                </div>
+            </div>
+        );
+
+        // 4. BOOKING MODAL
+        const BookingModal = ({ tour, onClose, onSubmit }) => {
+            const [formData, setFormData] = useState({ name: '', email: '', phone: '', date: '', msg: '' });
+
+            const handleSubmit = (e) => {
+                e.preventDefault();
+                onSubmit({ ...formData, tour: tour.title });
+                onClose();
+            };
+
+            return (
+                <div className="fixed inset-0 z-[60] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-fade-in">
+                    <div className="bg-white rounded-2xl w-full max-w-lg overflow-hidden shadow-2xl">
+                        <div className="bg-orange-500 p-6 text-white flex justify-between items-center">
+                            <h3 className="text-xl font-bold">Book: {tour.title}</h3>
+                            <button onClick={onClose} className="hover:bg-white/20 p-1 rounded-full"><X size={20}/></button>
+                        </div>
+                        <form onSubmit={handleSubmit} className="p-6 space-y-4">
+                            <div className="grid grid-cols-2 gap-4">
+                                <input required type="text" placeholder="Full Name" className="w-full p-3 border rounded-lg focus:ring-2 focus:ring-orange-500 outline-none" onChange={e => setFormData({...formData, name: e.target.value})} />
+                                <input required type="email" placeholder="Email Address" className="w-full p-3 border rounded-lg focus:ring-2 focus:ring-orange-500 outline-none" onChange={e => setFormData({...formData, email: e.target.value})} />
+                            </div>
+                            <div className="grid grid-cols-2 gap-4">
+                                <input required type="tel" placeholder="Phone Number" className="w-full p-3 border rounded-lg focus:ring-2 focus:ring-orange-500 outline-none" onChange={e => setFormData({...formData, phone: e.target.value})} />
+                                <input required type="date" className="w-full p-3 border rounded-lg focus:ring-2 focus:ring-orange-500 outline-none" onChange={e => setFormData({...formData, date: e.target.value})} />
+                            </div>
+                            <textarea placeholder="Special Requests" rows="3" className="w-full p-3 border rounded-lg focus:ring-2 focus:ring-orange-500 outline-none" onChange={e => setFormData({...formData, msg: e.target.value})}></textarea>
+                            <button type="submit" className="w-full py-4 bg-gray-900 text-white font-bold rounded-xl hover:bg-green-600 transition">Confirm Booking Request</button>
+                        </form>
+                    </div>
+                </div>
+            );
+        };
+
+        // 5. ADMIN DASHBOARD
+        const AdminDashboard = ({ bookings, tours, setTours }) => {
+            const [newTour, setNewTour] = useState({ title: '', price: '', duration: '', desc: '', image: '' });
+            const [activeTab, setActiveTab] = useState('bookings');
+
+            const handleAddTour = (e) => {
+                e.preventDefault();
+                const tour = { ...newTour, id: Date.now(), price: Number(newTour.price) };
+                setTours([...tours, tour]);
+                setNewTour({ title: '', price: '', duration: '', desc: '', image: '' });
+                alert("Tour added successfully! (Simulated DB update)");
+            };
+
+            return (
+                <div className="pt-24 pb-12 min-h-screen bg-gray-100">
+                    <div className="container mx-auto px-6">
+                        <div className="flex items-center gap-3 mb-8 text-red-600 bg-red-50 p-4 rounded-lg border border-red-200">
+                            <Shield size={24} />
+                            <div>
+                                <h2 className="font-bold text-lg">Admin Panel (Secure)</h2>
+                                <p className="text-sm">You have full read/write access. Changes are saved to local state.</p>
+                            </div>
+                        </div>
+
+                        <div className="flex gap-4 mb-8 border-b border-gray-200">
+                            {['bookings', 'tours', 'analytics'].map(tab => (
+                                <button 
+                                    key={tab}
+                                    onClick={() => setActiveTab(tab)}
+                                    className={`pb-2 px-4 font-semibold capitalize ${activeTab === tab ? 'border-b-2 border-orange-500 text-orange-600' : 'text-gray-500'}`}
+                                >
+                                    {tab}
+                                </button>
+                            ))}
+                        </div>
+
+                        {activeTab === 'bookings' && (
+                            <div className="bg-white rounded-xl shadow-sm overflow-hidden">
+                                <table className="w-full text-left">
+                                    <thead className="bg-gray-50 text-gray-600 text-sm uppercase">
+                                        <tr>
+                                            <th className="p-4">ID</th>
+                                            <th className="p-4">Customer</th>
+                                            <th className="p-4">Tour</th>
+                                            <th className="p-4">Date</th>
+                                            <th className="p-4">Status</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody className="divide-y divide-gray-100">
+                                        {bookings.map(b => (
+                                            <tr key={b.id} className="hover:bg-gray-50">
+                                                <td className="p-4 text-gray-500">#{b.id}</td>
+                                                <td className="p-4 font-medium">{b.name}</td>
+                                                <td className="p-4 text-orange-600">{b.tour}</td>
+                                                <td className="p-4">{b.date}</td>
+                                                <td className="p-4"><span className={`px-2 py-1 rounded-full text-xs font-bold ${b.status === 'Confirmed' ? 'bg-green-100 text-green-700' : 'bg-yellow-100 text-yellow-700'}`}>{b.status}</span></td>
+                                            </tr>
+                                        ))}
+                                    </tbody>
+                                </table>
+                            </div>
+                        )}
+
+                        {activeTab === 'tours' && (
+                            <div className="grid lg:grid-cols-3 gap-8">
+                                <div className="lg:col-span-1 bg-white p-6 rounded-xl shadow-sm h-fit">
+                                    <h3 className="font-bold text-lg mb-4">Add New Package</h3>
+                                    <form onSubmit={handleAddTour} className="space-y-3">
+                                        <input required placeholder="Tour Title" className="w-full p-2 border rounded" value={newTour.title} onChange={e => setNewTour({...newTour, title: e.target.value})} />
+                                        <div className="grid grid-cols-2 gap-3">
+                                            <input required type="number" placeholder="Price ($)" className="w-full p-2 border rounded" value={newTour.price} onChange={e => setNewTour({...newTour, price: e.target.value})} />
+                                            <input required placeholder="Duration" className="w-full p-2 border rounded" value={newTour.duration} onChange={e => setNewTour({...newTour, duration: e.target.value})} />
+                                        </div>
+                                        <input required placeholder="Image URL" className="w-full p-2 border rounded" value={newTour.image} onChange={e => setNewTour({...newTour, image: e.target.value})} />
+                                        <textarea required placeholder="Description" className="w-full p-2 border rounded" value={newTour.desc} onChange={e => setNewTour({...newTour, desc: e.target.value})}></textarea>
+                                        <button type="submit" className="w-full py-2 bg-gray-900 text-white rounded font-medium hover:bg-orange-500 transition">Add Package</button>
+                                    </form>
+                                </div>
+                                <div className="lg:col-span-2 grid md:grid-cols-2 gap-4">
+                                    {tours.map(t => (
+                                        <div key={t.id} className="flex gap-4 bg-white p-3 rounded-lg shadow-sm border border-gray-100">
+                                            <img src={t.image} className="w-20 h-20 rounded-lg object-cover" />
+                                            <div>
+                                                <h4 className="font-bold">{t.title}</h4>
+                                                <p className="text-sm text-gray-500">${t.price} • {t.duration}</p>
+                                                <button className="text-xs text-red-500 mt-2 hover:underline">Delete</button>
+                                            </div>
+                                        </div>
+                                    ))}
+                                </div>
+                            </div>
+                        )}
+
+                        {activeTab === 'analytics' && (
+                            <div className="grid md:grid-cols-3 gap-6">
+                                {[
+                                    { label: "Total Bookings", val: bookings.length, color: "bg-blue-500" },
+                                    { label: "Active Tours", val: tours.length, color: "bg-green-500" },
+                                    { label: "Revenue (Sim)", val: "$" + (bookings.length * 150), color: "bg-orange-500" }
+                                ].map((stat, i) => (
+                                    <div key={i} className="bg-white p-6 rounded-xl shadow-sm border border-gray-100">
+                                        <div className={`w-12 h-12 ${stat.color} rounded-lg flex items-center justify-center text-white mb-4`}>
+                                            <Users size={24} />
+                                        </div>
+                                        <h3 className="text-3xl font-bold text-gray-800">{stat.val}</h3>
+                                        <p className="text-gray-500">{stat.label}</p>
+                                    </div>
+                                ))}
+                            </div>
+                        )}
+                    </div>
+                </div>
+            );
+        };
+
+        // 6. EMERGENCY WIDGET
+        const EmergencyWidget = () => {
+            const [isOpen, setIsOpen] = useState(false);
+
+            return (
+                <div className="fixed bottom-6 right-6 z-50 flex flex-col items-end gap-4">
+                    {isOpen && (
+                        <div className="bg-white p-6 rounded-2xl shadow-2xl w-80 border border-red-100 animate-fade-in mb-2">
+                            <div className="flex justify-between items-center mb-4 text-red-600">
+                                <h3 className="font-bold flex items-center gap-2"><AlertTriangle size={20}/> Emergency Help</h3>
+                                <button onClick={() => setIsOpen(false)} className="text-gray-400 hover:text-gray-600"><X size={18}/></button>
+                            </div>
+                            <div className="space-y-3">
+                                {EMERGENCY_CONTACTS.map((c, i) => (
+                                    <a key={i} href={`tel:${c.number}`} className="flex items-center justify-between p-3 bg-red-50 rounded-lg hover:bg-red-100 transition group">
+                                        <span className="font-medium text-gray-700">{c.name}</span>
+                                        <span className="font-bold text-red-600 flex items-center gap-2 group-hover:scale-105 transition">
+                                            <Phone size={16}/> {c.number}
+                                        </span>
+                                    </a>
+                                ))}
+                            </div>
+                            <div className="mt-4 pt-4 border-t border-gray-100 text-xs text-gray-500">
+                                * Available 24/7 for Tourists
+                            </div>
+                        </div>
+                    )}
+                    <button 
+                        onClick={() => setIsOpen(!isOpen)}
+                        className={`w-14 h-14 rounded-full shadow-lg flex items-center justify-center text-white transition-all hover:scale-110 ${isOpen ? 'bg-gray-800 rotate-45' : 'bg-red-600 animate-pulse'}`}
+                    >
+                        {isOpen ? <X size={28} /> : <AlertTriangle size={28} />}
+                    </button>
+                </div>
+            );
+        };
+
+        // --- MAIN APP COMPONENT ---
+        const App = () => {
+            const [activeTab, setActiveTab] = useState('home');
+            const [isAdmin, setIsAdmin] = useState(false);
+            const [selectedTour, setSelectedTour] = useState(null);
+            const [showBookingSuccess, setShowBookingSuccess] = useState(false);
+            
+            // Simulated State
+            const [tours, setTours] = useState(INITIAL_TOURS);
+            const [bookings, setBookings] = useState(INITIAL_BOOKINGS);
+
+            const handleBooking = (data) => {
+                const newBooking = {
+                    id: Math.floor(Math.random() * 10000),
+                    name: data.name,
+                    tour: data.tour,
+                    date: data.date,
+                    status: "Pending"
+                };
+                setBookings([newBooking, ...bookings]);
+                setShowBookingSuccess(true);
+                setTimeout(() => setShowBookingSuccess(false), 5000);
+            };
+
+            // Scroll to section handler
+            useEffect(() => {
+                if (activeTab !== 'admin') {
+                    const el = document.getElementById(activeTab);
+                    if (el) el.scrollIntoView({ behavior: 'smooth' });
+                }
+                if (activeTab === 'home') window.scrollTo({ top: 0, behavior: 'smooth' });
+            }, [activeTab]);
+
+            return (
+                <div className="min-h-screen bg-white">
+                    <Navbar activeTab={activeTab} setActiveTab={setActiveTab} isAdmin={isAdmin} setIsAdmin={setIsAdmin} />
+                    
+                    {/* Success Toast */}
+                    {showBookingSuccess && (
+                        <div className="fixed top-24 right-6 z-[70] bg-green-600 text-white px-6 py-4 rounded-xl shadow-2xl flex items-center gap-3 animate-fade-in">
+                            <CheckCircle size={24} />
+                            <div>
+                                <h4 className="font-bold">Booking Request Sent!</h4>
+                                <p className="text-sm text-green-100">We will contact you shortly.</p>
+                            </div>
+                        </div>
+                    )}
+
+                    {isAdmin ? (
+                        <AdminDashboard bookings={bookings} tours={tours} setTours={setTours} />
+                    ) : (
+                        <>
+                            {/* HOME / HERO */}
+                            <section id="home">
+                                <Hero 
+                                    onExplore={() => setActiveTab('tours')} 
+                                    onBook={() => document.getElementById('tours').scrollIntoView({behavior: 'smooth'})} 
+                                />
+                            </section>
+
+                            {/* FEATURES / STATS */}
+                            <section className="py-20 bg-white">
+                                <div className="container mx-auto px-6">
+                                    <div className="grid md:grid-cols-3 gap-12 text-center">
+                                        {[
+                                            { icon: MapPin, title: "50+ Destinations", desc: "Covering every corner of the island." },
+                                            { icon: Shield, title: "Safe Travel", desc: "Verified guides and 24/7 support." },
+                                            { icon: Star, title: "5-Star Service", desc: "Luxury transport and premium hotels." }
+                                        ].map((f, i) => (
+                                            <div key={i} className="p-6 rounded-2xl hover:bg-orange-50 transition duration-300">
+                                                <div className="w-16 h-16 bg-orange-100 text-orange-600 rounded-full flex items-center justify-center mx-auto mb-6">
+                                                    <f.icon size={32} />
+                                                </div>
+                                                <h3 className="text-xl font-bold mb-3">{f.title}</h3>
+                                                <p className="text-gray-600">{f.desc}</p>
+                                            </div>
+                                        ))}
+                                    </div>
+                                </div>
+                            </section>
+
+                            {/* TOURS */}
+                            <section id="tours" className="py-20 bg-gray-50">
+                                <div className="container mx-auto px-6">
+                                    <div className="text-center mb-16">
+                                        <h2 className="text-4xl font-bold text-gray-900 mb-4">Popular Tour Packages</h2>
+                                        <p className="text-gray-600 max-w-2xl mx-auto">Hand-picked experiences designed to show you the very best of Sri Lanka, from ancient cities to pristine beaches.</p>
+                                    </div>
+                                    <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
+                                        {tours.map(tour => (
+                                            <TourCard key={tour.id} tour={tour} onSelect={setSelectedTour} />
+                                        ))}
+                                    </div>
+                                </div>
+                            </section>
+
+                            {/* GALLERY */}
+                            <section id="gallery" className="py-20 bg-white">
+                                <div className="container mx-auto px-6">
+                                    <h2 className="text-4xl font-bold text-center mb-12">Travel Gallery</h2>
+                                    <div className="columns-1 md:columns-3 gap-4 space-y-4">
+                                        {[1,2,3,4,5,6].map((i) => (
+                                            <div key={i} className="break-inside-avoid relative group overflow-hidden rounded-xl cursor-pointer">
+                                                <img 
+                                                    src={`https://images.unsplash.com/photo-${i % 2 === 0 ? '1590418606746-02e6274964c7' : '1586617629608-2b189420f6f7'}?auto=format&fit=crop&w=600&q=80`} 
+                                                    className="w-full h-auto transform group-hover:scale-110 transition duration-700"
+                                                    alt="Sri Lanka"
+                                                />
+                                                <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition duration-300 flex items-center justify-center">
+                                                    <span className="text-white font-bold border-2 border-white px-4 py-2 rounded-full">View</span>
+                                                </div>
+                                            </div>
+                                        ))}
+                                    </div>
+                                </div>
+                            </section>
+
+                            {/* ABOUT */}
+                            <section id="about" className="py-20 bg-gray-900 text-white">
+                                <div className="container mx-auto px-6 flex flex-col md:flex-row items-center gap-12">
+                                    <div className="md:w-1/2">
+                                        <img src="https://images.unsplash.com/photo-1544144433-d50aff500b91?auto=format&fit=crop&w=800&q=80" className="rounded-2xl shadow-2xl" alt="About Us" />
+                                    </div>
+                                    <div className="md:w-1/2">
+                                        <h2 className="text-4xl font-bold mb-6">Why Choose WGSI SL?</h2>
+                                        <p className="text-gray-400 mb-6 leading-relaxed">
+                                            We are a premier luxury travel brand dedicated to curating unforgettable journeys across Sri Lanka. With over a decade of experience, we understand the nuances of high-end travel.
+                                        </p>
+                                        <ul className="space-y-4">
+                                            {["Expert Local Guides", "Luxury Vehicle Fleet", "Custom Itineraries", "24/7 Concierge"].map((item, i) => (
+                                                <li key={i} className="flex items-center gap-3">
+                                                    <CheckCircle size={20} className="text-orange-500" />
+                                                    <span>{item}</span>
+                                                </li>
+                                            ))}
+                                        </ul>
+                                    </div>
+                                </div>
+                            </section>
+
+                            {/* CONTACT */}
+                            <section id="contact" className="py-20 bg-orange-50">
+                                <div className="container mx-auto px-6 max-w-4xl">
+                                    <div className="bg-white rounded-3xl shadow-xl overflow-hidden flex flex-col md:flex-row">
+                                        <div className="md:w-2/5 bg-gray-900 text-white p-10 flex flex-col justify-between">
+                                            <div>
+                                                <h3 className="text-2xl font-bold mb-6">Contact Info</h3>
+                                                <div className="space-y-6">
+                                                    <div className="flex items-start gap-4">
+                                                        <Phone className="text-orange-500 shrink-0" />
+                                                        <div>
+                                                            <p className="text-sm text-gray-400">Phone</p>
+                                                            <p className="font-medium">+94 77 123 4567</p>
+                                                        </div>
+                                                    </div>
+                                                    <div className="flex items-start gap-4">
+                                                        <Mail className="text-orange-500 shrink-0" />
+                                                        <div>
+                                                            <p className="text-sm text-gray-400">Email</p>
+                                                            <p className="font-medium">hello@wgsisl.com</p>
+                                                        </div>
+                                                    </div>
+                                                    <div className="flex items-start gap-4">
+                                                        <MapPin className="text-orange-500 shrink-0" />
+                                                        <div>
+                                                            <p className="text-sm text-gray-400">Address</p>
+                                                            <p className="font-medium">Colombo, Sri Lanka</p>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            <div className="flex gap-4 mt-8">
+                                                <Instagram className="hover:text-orange-500 cursor-pointer" />
+                                                <Facebook className="hover:text-orange-500 cursor-pointer" />
+                                                <Twitter className="hover:text-orange-500 cursor-pointer" />
+                                            </div>
+                                        </div>
+                                        <div className="md:w-3/5 p-10">
+                                            <h3 className="text-2xl font-bold text-gray-800 mb-6">Send a Message</h3>
+                                            <form className="space-y-4" onSubmit={(e) => { e.preventDefault(); alert('Message sent!'); }}>
+                                                <div className="grid grid-cols-2 gap-4">
+                                                    <input type="text" placeholder="Name" className="w-full p-3 bg-gray-50 rounded-lg border focus:border-orange-500 outline-none" />
+                                                    <input type="email" placeholder="Email" className="w-full p-3 bg-gray-50 rounded-lg border focus:border-orange-500 outline-none" />
+                                                </div>
+                                                <textarea placeholder="Message" rows="4" className="w-full p-3 bg-gray-50 rounded-lg border focus:border-orange-500 outline-none"></textarea>
+                                                <button className="w-full py-3 bg-orange-500 text-white font-bold rounded-lg hover:bg-orange-600 transition">Send Message</button>
+                                            </form>
+                                        </div>
+                                    </div>
+                                </div>
+                            </section>
+
+                            {/* FOOTER */}
+                            <footer className="bg-gray-900 text-gray-400 py-12 border-t border-gray-800">
+                                <div className="container mx-auto px-6 grid md:grid-cols-4 gap-8">
+                                    <div>
+                                        <div className="flex items-center gap-2 text-white mb-4">
+                                            <div className="w-8 h-8 bg-orange-500 rounded-full flex items-center justify-center font-bold">W</div>
+                                            <span className="text-xl font-bold">WGSI SL</span>
+                                        </div>
+                                        <p className="text-sm">Luxury travel experiences across the pearl of the Indian Ocean.</p>
+                                    </div>
+                                    <div>
+                                        <h4 className="text-white font-bold mb-4">Quick Links</h4>
+                                        <ul className="space-y-2 text-sm">
+                                            <li className="hover:text-orange-500 cursor-pointer">Home</li>
+                                            <li className="hover:text-orange-500 cursor-pointer">Tours</li>
+                                            <li className="hover:text-orange-500 cursor-pointer">About</li>
+                                            <li className="hover:text-orange-500 cursor-pointer">Contact</li>
+                                        </ul>
+                                    </div>
+                                    <div>
+                                        <h4 className="text-white font-bold mb-4">Support</h4>
+                                        <ul className="space-y-2 text-sm">
+                                            <li className="hover:text-orange-500 cursor-pointer">FAQ</li>
+                                            <li className="hover:text-orange-500 cursor-pointer">Privacy Policy</li>
+                                            <li className="hover:text-orange-500 cursor-pointer">Terms of Service</li>
+                                        </ul>
+                                    </div>
+                                    <div>
+                                        <h4 className="text-white font-bold mb-4">Newsletter</h4>
+                                        <div className="flex">
+                                            <input type="email" placeholder="Your email" className="bg-gray-800 border-none text-white px-4 py-2 rounded-l-lg w-full focus:ring-1 focus:ring-orange-500 outline-none" />
+                                            <button className="bg-orange-500 text-white px-4 py-2 rounded-r-lg hover:bg-orange-600"><Send size={18}/></button>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div className="text-center mt-12 pt-8 border-t border-gray-800 text-sm">
+                                    © 2026 WGSI SL Tourism. All rights reserved.
+                                </div>
+                            </footer>
+                        </>
+                    )}
+
+                    {/* Floating Elements */}
+                    {!isAdmin && <EmergencyWidget />}
+                    {selectedTour && <BookingModal tour={selectedTour} onClose={() => setSelectedTour(null)} onSubmit={handleBooking} />}
+                    
+                    {/* WhatsApp Button (Only in Client View) */}
+                    {!isAdmin && (
+                        <a href="https://wa.me/94771234567" target="_blank" className="fixed bottom-6 left-6 z-40 bg-green-500 text-white p-4 rounded-full shadow-lg hover:bg-green-600 transition hover:scale-110">
+                            <MessageSquare size={24} />
+                        </a>
+                    )}
+                </div>
+            );
+        };
+
+        const root = ReactDOM.createRoot(document.getElementById('root'));
+        root.render(<App />);
+    </script>
+</body>
+</html>
